@@ -27,6 +27,7 @@ async function bootstrap() {
         '\x1b[37m',
         '\x1b[42m',
         `Server is Listening on Port ${port}...`,
+        '\x1b[0m',
       ),
     );
   } catch (error) {
