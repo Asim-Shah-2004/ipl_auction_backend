@@ -20,5 +20,5 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {},
-  ignorePattern: ['old/'],
+  ignorePattern: ['old/', 'dist/', 'node_modules/'],
 };
