@@ -4,8 +4,7 @@ import helmet from 'helmet';
 import logger from 'morgan';
 import 'express-async-errors';
 import dotenv from 'dotenv';
-
-import { dbConnect } from './db';
+import { connect } from 'mongoose';
 
 dotenv.config();
 const port = process.env.PORT ?? 5000;
@@ -20,7 +19,7 @@ app.use(logger('dev'));
 
 async function bootstrap() {
   try {
-    await dbConnect(process.env.MONGO_URI);
+    await connect(process.env.MONGO_URI);
     app.listen(port, () =>
       console.log(
         '\x1b[1m',
