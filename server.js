@@ -23,3 +23,15 @@ app.get("/",(req,res)=>{
     res.send("<h1>test</h1>");
 });
 
+app.get("/login",(req,res)=>{
+    const {username,password,slot} = req.body;
+    User.findOne({username,slot},(err,user)=>{
+        if(err){
+
+        }else if(user){
+
+        }else{
+            
+        }
+    })
+})
