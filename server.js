@@ -3,7 +3,6 @@ import mongoose from "mongoose"
 import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
-import Team from "./models/teams.js"
 import errorHandler from "./middlewares/errorMiddleware.js"
 const app = express();
 const PORT = 3000;
@@ -21,7 +20,17 @@ app.listen(PORT,()=>{
     console.log(`listening on port ${PORT}`);
 });
 
+async function test() {
+    try {
+        const user = await User.findOne({ username: "asim" });
+        console.log("here");
+        console.log(user);
+    } catch (error) {
+        console.error(error);
+    }
+}
 
+test();
 
 app.get("/",(req,res)=>{
     res.send("<h1>test</h1>");
@@ -30,7 +39,6 @@ app.get("/",(req,res)=>{
 
 
 //user verification
-//test completed for login
 app.post("/login", async (req, res) => {
     try {
        const { username, password, slot } = req.body;
@@ -51,4 +59,4 @@ app.post("/login", async (req, res) => {
     }
  });
  
- 
+ //test completed for login

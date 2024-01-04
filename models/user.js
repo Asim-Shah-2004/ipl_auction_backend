@@ -13,9 +13,35 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: [true, "Please enter slot number"],
         // min max constraint for this needs to be added
+    },Teamname:{
+        type:String, 
+    }
+    ,
+    buget:{ 
+        type:Number,
+        required:[true,"invalid buget"],
+        max:950000000,
+        min:0
     },
-}, { collection: 'User' }); // Specify the collection name as 'User'
+    score:{
+        type:Number,
+        required:[true,"invalid score"],
+        min:0
+    },
+    players:[{
+        type:mongoose.Schema.ObjectId,
+        ref:"Players"
+    }],
+    powercards:[{
+        name:{type:String},
+        isUsed:{
+            type:Boolean,
+            default:false
+        }
+    }]
+}, { collection: 'User' }); 
 
 const User = mongoose.model("User", userSchema);
 
 export default User;
+

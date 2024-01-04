@@ -78,3 +78,5 @@ const playerSchema = mongoose.Schema({
 const Players = mongoose.model("Players",playerSchema);
 
 export default Players;
+
+//add gender and underdog in schema and shift this schema to teams
