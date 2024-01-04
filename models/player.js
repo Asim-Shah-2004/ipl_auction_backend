@@ -9,6 +9,10 @@ const playerSchema = mongoose.Schema({
         type:String,
         required:[true,"flag required"]
     },
+    gender:{
+        type:String,
+        required:[true,"gender not found"]
+    },
     type:{
         type:String,
         required:[true,"type required"]
