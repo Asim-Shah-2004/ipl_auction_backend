@@ -73,6 +73,8 @@ const playerSchema = mongoose.Schema({
         type:Boolean,
         default:false
     }
-});
+},{collection:"Players"});
 
-export default playerSchema;
+const Players = mongoose.model("Players",playerSchema);
+
+export default Players;

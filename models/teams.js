@@ -30,6 +30,8 @@ const teamSchema = mongoose.Schema({
         name:{type:String},
         isUsed:{type:Boolean}
     }]
-});
+},{collection:"Team"});
 
-export default teamSchema
+const Team = mongoose.model("Team",teamSchema);
+
+export default Team
