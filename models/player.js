@@ -77,7 +77,7 @@ const playerSchema = mongoose.Schema({
         type:Boolean,
         default:false
     }
-},{collection:"Players"});
+},{collection:"Player"});
 
 const Players = mongoose.model("Players",playerSchema);
 

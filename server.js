@@ -4,6 +4,7 @@ import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
 import errorHandler from "./middlewares/errorMiddleware.js"
+
 const app = express();
 const PORT = 3000;
 app.use(express.json());
@@ -19,18 +20,6 @@ mongoose.connect(CONNECTION_URL,{useNewUrlParser:true,useUnifiedTopology:true,fa
 app.listen(PORT,()=>{
     console.log(`listening on port ${PORT}`);
 });
-
-async function test() {
-    try {
-        const user = await User.findOne({ username: "asim" });
-        console.log("here");
-        console.log(user);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-test();
 
 app.get("/",(req,res)=>{
     res.send("<h1>test</h1>");
@@ -60,3 +49,77 @@ app.post("/login", async (req, res) => {
  });
  
  //test completed for login
+
+
+/*
+ The adminAddPlayer is used to add a new player
+ this will consist of a form with 4 parameters 
+ 1. player name (player which is sold)
+ 2. team name (which team was this sold eg mi csk rr etc)
+ 3. slot no
+ 4.cost (cost at which player is sold) in cr if its 50L then admin should type 0.5
+ 
+    in this method a new player will be added in the database of the user using _id 
+    here we will also use mongoose change stream to listen to realtime database 
+    changes to no need of refreshing is required
+*/
+app.put("/adminAddPlayer", async (req, res) => {
+    try {
+        const { playerName, teamName, slot, buget } = req.body;
+
+        const user = await User.findOne({ teamName, slot });
+
+        if (user) {
+            const player = await Players.findOne({ playerName });
+
+            if (player) {
+                if (player.isSold === false) {
+                    const newbuget = user.buget - (buget*10000000);
+                    
+                    if (newbuget < 0) {
+                        return res.send({ message: "Not enough buget" });
+                    } else {
+                        player.isSold = true;
+                        user.buget = newbuget;
+                        
+                        if (!user.players.includes(player._id)) {
+                            user.players.push(player._id);
+                        }
+
+                        await user.save();
+                        await player.save();
+                        return res.send("New player added successfully");
+                    }
+                } else {
+                    return res.send({ message: "Player is already sold" });
+                }
+            } else {
+                return res.send({ message: "Player not found" });
+            }
+        } else {
+            return res.send({ message: "User not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+/*testing of this is completed but additional constraints will be added in thr frontend 
+such as limited no of women players batsman bowler etc
+*/
+
+
+
+//testing code
+
+// async function test1(){
+//     try{
+//         const player = await User.find();
+//         console.log(player);
+//     }catch(err){
+//         next(err);
+//     }
+// }
+
+// test1();

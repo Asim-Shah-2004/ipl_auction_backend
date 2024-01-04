@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: [true, "Please enter slot number"],
         // min max constraint for this needs to be added
-    },Teamname:{
+    },teamName:{
         type:String, 
     }
     ,
