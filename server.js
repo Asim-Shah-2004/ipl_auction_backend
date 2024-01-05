@@ -101,13 +101,48 @@ app.put("/adminAddPlayer", async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        res.status(500).send({ message: "Internal Server Error" });
+        next(err);
     }
 });
 
 /*testing of this is completed but additional constraints will be added in thr frontend 
 such as limited no of women players batsman bowler etc
 */
+
+/*
+    admin Add powercard is used to add powercards this will contain
+    1. teamName
+    2. slot 
+    3. powercard to be added (note this should be a drop box to avoid errors)
+    simple code that adds power card very self explanitory
+    
+*/
+app.put("/adminAddPowerCard", async (req, res) => {
+    try {
+        const { teamName, slot, powercard } = req.body;
+        const user = await User.findOne({ teamName, slot });
+        if (user) {
+            const result = user.powercards.find(pc => pc.name === powercard);
+            if (!result) {
+                user.powercards.push({ name: powercard, isUsed: false });
+                await user.save();
+
+                return res.send({ message: "Power card added successfully" });
+            } else {
+                return res.send({ message: "Power card already present" });
+            }
+        } else {
+            return res.send({ message: "User not found" });
+        }
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
+});
+
+
+//testing completed
+
 
 
 

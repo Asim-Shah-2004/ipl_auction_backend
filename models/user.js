@@ -34,10 +34,7 @@ const userSchema = new mongoose.Schema({
     }],
     powercards:[{
         name:{type:String},
-        isUsed:{
-            type:Boolean,
-            default:false
-        }
+        isUsed:{type:Boolean}
     }]
 }, { collection: 'User' }); 
 
