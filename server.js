@@ -22,7 +22,7 @@ app.listen(PORT,()=>{
 });
 
 app.get("/",(req,res)=>{
-    res.send("<h1>test</h1>");
+    res.send("<h1>Hello world</h1>");
 
 });
 
