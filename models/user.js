@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
         type:String, // mi cks rr
     }
     ,
+    //note this spelling is wrong
     buget:{ 
         type:Number,
         required:[true,"invalid buget"],

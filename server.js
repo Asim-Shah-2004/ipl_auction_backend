@@ -88,7 +88,7 @@ app.post("/adminAddPlayer", async (req, res) => {
 
                         await user.save();
                         await player.save();
-                        return res.send("New player added successfully");
+                        return res.send({message:"New player added successfully",user:user});
                     }
                 } else {
                     return res.send({ message: "Player is already sold" });
@@ -127,7 +127,7 @@ app.post("/adminAddPowerCard", async (req, res) => {
                 user.powercards.push({ name: powercard, isUsed: false });
                 await user.save();
 
-                return res.send({ message: "Power card added successfully" });
+                return res.send({ message: "Power card added successfully" ,user:user});
             } else {
                 return res.send({ message: "Power card already present" });
             }
@@ -142,24 +142,53 @@ app.post("/adminAddPowerCard", async (req, res) => {
 
 // testing complete
 
-app.post("/adminDeletePlayer",async (req,res)=>{
-    try{
-        const {playerName,teamName,slot,bugetToAdd} = req.body;
-        const user = await User.findOne({teamName,slot});
-        if(user){
-            const playerId = await Players.findOne({playerName}).select('_id');
-            if(playerId){
+/**
+ * admin delete player will help to delete player
+ * after player is deleted buget will be added (has to input by admin)
+ * is sold will be set to false 
+ * and player will be deleted from players array
+ * input will be
+ * 1.playerName
+ * 2.teamName
+ * 3.slot
+ * 4.bugetToAdd
+ */
 
-            }else{
-                return res.send();
-            }
-        }else{
-            return res.send({message:"user not found"});
+app.post("/adminDeletePlayer", async (req, res, next) => {
+    try {
+      const { playerName, teamName, slot, bugetToAdd } = req.body;
+      const user = await User.findOne({ teamName, slot });
+  
+      if (user) {
+        const player = await Players.findOne({ playerName }).select('_id');
+  
+        if (player) {
+          const playerIndex = user.players.findIndex(playerId => playerId.equals(player._id));
+  
+          if (playerIndex !== -1) {
+            player.isSold = false;
+            await player.save();
+            user.buget = user.buget + (bugetToAdd*10000000);
+            user.players.splice(playerIndex, 1); 
+            await user.save();
+            return res.send({ message: "Player deleted successfully", user: user });
+          } else {
+            return res.send({ message: "Player does not exist with this user" });
+          }
+        } else {
+          return res.send({ message: "Player not found" });
         }
-    }catch(err){
-        next(err);
+      } else {
+        return res.send({ message: "User not found" });
+      }
+    } catch (err) {
+      next(err);
     }
-});
+  });
+  
+// testing complete
+
+//NOTE ERROR MIDDLEWARE IS NOT WORKING 
 
 /**
  * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
