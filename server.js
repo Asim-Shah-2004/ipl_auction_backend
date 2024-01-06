@@ -144,7 +144,7 @@ app.post("/adminAddPowerCard", async (req, res) => {
 
 app.post("/adminDeletePlayer",async (req,res)=>{
     try{
-        const {playerName,teamName,slot} = req.body;
+        const {playerName,teamName,slot,bugetToAdd} = req.body;
         const user = await User.findOne({teamName,slot});
         if(user){
             const playerId = await Players.findOne({playerName}).select('_id');
