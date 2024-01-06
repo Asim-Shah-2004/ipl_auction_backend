@@ -140,11 +140,33 @@ app.put("/adminAddPowerCard", async (req, res) => {
     }
 });
 
+/**
+ * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
+ * also for spectate
+ * const id = req.params 
+ * after login store user id in frontend 
+ * 1. players ka array(_id)
+ * 2. buget
+ * 3. powercard ka array
+ * 4.team name + slot
+ */
+
+/**
+ * for leaderboard 
+ * 1. score
+ * 2. team name + slot 
+ */
+
+
 
 //testing completed
 
+app.put("/adminDeleteUser",(req,res)=>{
+
+});
 
 
+// ipl -> user (player array ref form player) player
 
 //testing code
 

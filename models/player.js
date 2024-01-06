@@ -10,11 +10,11 @@ const playerSchema = mongoose.Schema({
         required:[true,"flag required"]
     },
     gender:{
-        type:String,
+        type:String,    // men women underdog
         required:[true,"gender not found"]
     },
     type:{
-        type:String,
+        type:String,    // bat bowl all 
         required:[true,"type required"]
     },
     basePrice:{
