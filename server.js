@@ -63,7 +63,7 @@ app.post("/login", async (req, res) => {
     here we will also use mongoose change stream to listen to realtime database 
     changes to no need of refreshing is required
 */
-app.put("/adminAddPlayer", async (req, res) => {
+app.post("/adminAddPlayer", async (req, res) => {
     try {
         const { playerName, teamName, slot, buget } = req.body;
 
@@ -117,7 +117,7 @@ such as limited no of women players batsman bowler etc
     simple code that adds power card very self explanitory
     
 */
-app.put("/adminAddPowerCard", async (req, res) => {
+app.post("/adminAddPowerCard", async (req, res) => {
     try {
         const { teamName, slot, powercard } = req.body;
         const user = await User.findOne({ teamName, slot });
@@ -140,6 +140,27 @@ app.put("/adminAddPowerCard", async (req, res) => {
     }
 });
 
+// testing complete
+
+app.post("/adminDeletePlayer",async (req,res)=>{
+    try{
+        const {playerName,teamName,slot} = req.body;
+        const user = await User.findOne({teamName,slot});
+        if(user){
+            const playerId = await Players.findOne({playerName}).select('_id');
+            if(playerId){
+
+            }else{
+                return res.send();
+            }
+        }else{
+            return res.send({message:"user not found"});
+        }
+    }catch(err){
+        next(err);
+    }
+});
+
 /**
  * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
  * also for spectate
@@ -156,14 +177,6 @@ app.put("/adminAddPowerCard", async (req, res) => {
  * 1. score
  * 2. team name + slot 
  */
-
-
-
-//testing completed
-
-app.put("/adminDeleteUser",(req,res)=>{
-
-});
 
 
 // ipl -> user (player array ref form player) player
