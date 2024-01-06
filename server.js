@@ -174,7 +174,7 @@ app.post("/adminDeletePlayer",async (req,res)=>{
 
 /**
  * for leaderboard 
- * 1. score
+ * 1. score kskksk
  * 2. team name + slot 
  */
 
