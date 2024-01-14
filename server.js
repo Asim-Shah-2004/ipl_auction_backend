@@ -28,7 +28,7 @@ app.get("/",(req,res)=>{
 
 
 //user verification
-app.post("/login", async (req, res) => {
+app.post("/login", async (req, res, next) => {
     try {
        const { username, password, slot } = req.body;
        const user = await User.findOne({ username, slot });
@@ -63,7 +63,7 @@ app.post("/login", async (req, res) => {
     here we will also use mongoose change stream to listen to realtime database 
     changes to no need of refreshing is required
 */
-app.post("/adminAddPlayer", async (req, res) => {
+app.post("/adminAddPlayer", async (req, res ,next) => {
     try {
         const { playerName, teamName, slot, buget } = req.body;
 
@@ -117,7 +117,7 @@ such as limited no of women players batsman bowler etc
     simple code that adds power card very self explanitory
     
 */
-app.post("/adminAddPowerCard", async (req, res) => {
+app.post("/adminAddPowerCard", async (req, res ,next) => {
     try {
         const { teamName, slot, powercard } = req.body;
         const user = await User.findOne({ teamName, slot });
