@@ -10,7 +10,8 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 app.use(errorHandler);
-const CONNECTION_URL = "mongodb://localhost/ipl";
+
+const CONNECTION_URL = "mongodb+srv://IPL_AUCTION_24:auction%402024@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority";
 
 mongoose.connect(CONNECTION_URL,{useNewUrlParser:true,useUnifiedTopology:true,family: 4})
 .then(()=>{
@@ -139,6 +140,24 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
         next(err);
     }
 });
+
+
+await test(1000, []);
+
+async function test(timeInMs, pipeline = []) {
+    const changeStream = User.watch(pipeline);
+    changeStream.on('change', async (next) => {
+        const updatedFields = next.updateDescription.updatedFields;
+        if (updatedFields && updatedFields.players) {
+            const playersArray = updatedFields.players;
+            console.log('Updated Players Array:', playersArray);
+        }
+    });
+}
+
+
+
+
 
 // testing complete
 
