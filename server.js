@@ -142,31 +142,9 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
 });
 
 
-await test(1000, []);
-
-async function test(timeInMs, pipeline = []) {
-    const changeStream = User.watch(pipeline);
-    changeStream.on('change', async (next) => {
-        const updatedFields = next.updateDescription.updatedFields;
-        if (updatedFields && updatedFields.players) {
-            const playersArray = updatedFields.players;
-            console.log('Updated Players Array:', playersArray);
-        }
-    });
-}
-
-
-
-
-
 // testing complete
 
 /**
- * admin delete player will help to delete player
- * after player is deleted buget will be added (has to input by admin)
- * is sold will be set to false 
- * and player will be deleted from players array
- * input will be
  * 1.playerName
  * 2.teamName
  * 3.slot
@@ -207,7 +185,19 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
   
 // testing complete
 
-//NOTE ERROR MIDDLEWARE IS NOT WORKING 
+
+await test(1000, []);
+
+async function test(timeInMs, pipeline = []) {
+    const changeStream = User.watch(pipeline);
+    changeStream.on('change', async (next) => {
+        const updatedFields = next.updateDescription.updatedFields;
+        if (updatedFields && updatedFields.players) {
+            const playersArray = updatedFields.players;
+            console.log('Updated Players Array:', playersArray);
+        }
+    });
+}
 
 /**
  * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
