@@ -188,14 +188,33 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
 
 await test(1000, []);
 
+app.post("/leaderboard",async(req,res,next)=>{
+    try{
+        const {teamName,slot,score} = req.body;
+        const user = await User.findOne({teamName,slot});
+        if(user){
+        user.score = score;
+        await user.save();
+        return res.send({message:"score updated successfully",user});
+    }else{
+        return res.send({message:"user not found"});
+    }
+    }catch(err){
+        next(err);
+    }
+});
+
+
+
 async function test(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
     changeStream.on('change', async (next) => {
-        const updatedFields = next.updateDescription.updatedFields;
-        if (updatedFields && updatedFields.players) {
-            const playersArray = updatedFields.players;
-            console.log('Updated Players Array:', playersArray);
-        }
+        console.log(next);
+        // const updatedFields = next.updateDescription.updatedFields;
+        // if (updatedFields && updatedFields.players) {
+        //     const playersArray = updatedFields.players;
+        //     console.log('Updated Players Array:', playersArray);
+        // }
     });
 }
 
