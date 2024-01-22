@@ -205,16 +205,17 @@ app.post("/leaderboard",async(req,res,next)=>{
 });
 
 
-
 async function test(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
     changeStream.on('change', async (next) => {
-        console.log(next);
-        // const updatedFields = next.updateDescription.updatedFields;
-        // if (updatedFields && updatedFields.players) {
-        //     const playersArray = updatedFields.players;
-        //     console.log('Updated Players Array:', playersArray);
-        // }
+        const updatedFields = next.updateDescription.updatedFields;
+        if (updatedFields && updatedFields.players) {
+         //   const playersArray = updatedFields.players;
+            const length = updatedFields.players.length;
+            const id = updatedFields.players[length-1];
+            const player1 = await Players.findOne({id});
+            console.log(player1);
+        }
     });
 }
 
