@@ -4,8 +4,12 @@ import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
 import errorHandler from "./middlewares/errorMiddleware.js"
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server);
 const PORT = 3000;
 app.use(express.json());
 app.use(cors());
@@ -15,6 +19,7 @@ const CONNECTION_URL = "mongodb+srv://IPL_AUCTION_24:auction%402024@cluster0.ilk
 
 mongoose.connect(CONNECTION_URL,{useNewUrlParser:true,useUnifiedTopology:true,family: 4})
 .then(()=>{
+    changesInDB();
     console.log('connected to mongoDB successfully');
 }).catch(err=>{console.log('No connection')});
 
@@ -64,6 +69,12 @@ app.post("/login", async (req, res, next) => {
     here we will also use mongoose change stream to listen to realtime database 
     changes to no need of refreshing is required
 */
+let updateFlag;
+/**
+ * if updateFlag === insert then player was added
+ * if updateFlag === delete then player was deleted
+ */ 
+let addedPlayer;
 app.post("/adminAddPlayer", async (req, res ,next) => {
     try {
         const { playerName, teamName, slot, buget } = req.body;
@@ -81,12 +92,12 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
                         return res.send({ message: "Not enough buget" });
                     } else {
                         player.isSold = true;
-                        user.buget = newbuget;
-                        
+                        user.buget = newbuget; 
                         if (!user.players.includes(player._id)) {
                             user.players.push(player._id);
                         }
-
+                        addedPlayer = player;
+                        updateFlag = 'insert';
                         await user.save();
                         await player.save();
                         return res.send({message:"New player added successfully",user:user});
@@ -150,14 +161,14 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
  * 3.slot
  * 4.bugetToAdd
  */
-
+let deletedPlayer;
 app.post("/adminDeletePlayer", async (req, res, next) => {
     try {
       const { playerName, teamName, slot, bugetToAdd } = req.body;
       const user = await User.findOne({ teamName, slot });
   
       if (user) {
-        const player = await Players.findOne({ playerName }).select('_id');
+        const player = await Players.findOne({ playerName });
   
         if (player) {
           const playerIndex = user.players.findIndex(playerId => playerId.equals(player._id));
@@ -165,6 +176,8 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
           if (playerIndex !== -1) {
             player.isSold = false;
             await player.save();
+            deletedPlayer = player;
+            updateFlag = 'deleted';
             user.buget = user.buget + (bugetToAdd*10000000);
             user.players.splice(playerIndex, 1); 
             await user.save();
@@ -186,7 +199,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
 // testing complete
 
 
-await test(1000, []);
+
 
 app.post("/leaderboard",async(req,res,next)=>{
     try{
@@ -205,19 +218,23 @@ app.post("/leaderboard",async(req,res,next)=>{
 });
 
 
-async function test(timeInMs, pipeline = []) {
+function changesInDB(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
     changeStream.on('change', async (next) => {
-        const updatedFields = next.updateDescription.updatedFields;
-        if (updatedFields && updatedFields.players) {
-         //   const playersArray = updatedFields.players;
-            const length = updatedFields.players.length;
-            const id = updatedFields.players[length-1];
-            const player1 = await Players.findOne({id});
-            console.log(player1);
+        if(updateFlag==='insert'){
+            //works with console.log not sure about io.emit but shoud not be a major issue i think
+            io.emit('playerAdded', { addedPlayer });
+        }else if(updateFlag==='deleted'){
+            //works with console.log not sure about io.emit but shoud not be a major issue i think
+            io.emit('playerDeleted',{deletedPlayer});
         }
     });
 }
+
+
+
+
+
 
 /**
  * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
