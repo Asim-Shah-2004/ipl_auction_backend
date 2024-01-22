@@ -73,10 +73,7 @@ const playerSchema = mongoose.Schema({
     captaincyRating:{
         type:Number
     },
-    isSold:{
-        type:Boolean,
-        default:false
-    }
+    isSold:{type:[Number],default:[]}
 },{collection:"Player"});
 
 const Players = mongoose.model("Players",playerSchema);
