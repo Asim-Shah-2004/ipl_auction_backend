@@ -85,13 +85,14 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
             const player = await Players.findOne({ playerName });
 
             if (player) {
-                if (player.isSold === false) {
+                const index = player.isSold.indexOf(slot);
+                if (index===-1) {
                     const newbuget = user.buget - (buget*10000000);
                     
                     if (newbuget < 0) {
                         return res.send({ message: "Not enough buget" });
                     } else {
-                        player.isSold = true;
+                        player.isSold.push(slot);
                         user.buget = newbuget; 
                         if (!user.players.includes(player._id)) {
                             user.players.push(player._id);
@@ -103,7 +104,7 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
                         return res.send({message:"New player added successfully",user:user});
                     }
                 } else {
-                    return res.send({ message: "Player is already sold" });
+                    return res.send({ message: `Player is already sold in slot number ${slot}` });
                 }
             } else {
                 return res.send({ message: "Player not found" });
@@ -174,7 +175,8 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
           const playerIndex = user.players.findIndex(playerId => playerId.equals(player._id));
   
           if (playerIndex !== -1) {
-            player.isSold = false;
+            const index = player.isSold.indexOf(slot);
+            player.isSold.splice(index,1);
             await player.save();
             deletedPlayer = player;
             updateFlag = 'deleted';
