@@ -3,7 +3,7 @@ import mongoose from "mongoose"
 import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
-import errorHandler from "./middlewares/errorMiddleware.js"
+import errorHandler from "./middlewares/errorMiddleWare.js"
 import { createServer } from "http";
 import { Server } from "socket.io";
 
