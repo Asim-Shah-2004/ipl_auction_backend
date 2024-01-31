@@ -4,12 +4,19 @@ import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
 import errorHandler from "./middlewares/errorMiddleWare.js"
-import { createServer } from "http";
+import http from "http";
 import { Server } from "socket.io";
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
+
+
 const PORT = 3000;
 app.use(express.json());
 app.use(cors());
@@ -17,14 +24,20 @@ app.use(errorHandler);
 
 const CONNECTION_URL = "mongodb+srv://IPL_AUCTION_24:auction%402024@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority";
 
-mongoose.connect(CONNECTION_URL,{useNewUrlParser:true,useUnifiedTopology:true,family: 4})
+mongoose.connect(CONNECTION_URL)
 .then(()=>{
     changesInDB();
     console.log('connected to mongoDB successfully');
 }).catch(err=>{console.log('No connection')});
 
-app.listen(PORT,()=>{
+server.listen(PORT,()=>{
     console.log(`listening on port ${PORT}`);
+});
+
+io.on('connection', (socket) => {
+    socket.on('disconnect', () => {
+      console.log('A user disconnected');
+    });
 });
 
 app.get("/",(req,res)=>{
@@ -160,14 +173,16 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
   });
   
 
-
-app.post("/leaderboard",async(req,res,next)=>{
+  let updatedScore;
+app.post("/calculator",async(req,res,next)=>{
     try{
         const {teamName,slot,score} = req.body;
         const user = await User.findOne({teamName,slot});
         if(user){
         user.score = score;
         await user.save();
+        updateFlag='scoreUpdate';
+        updatedScore=user.score;
         return res.send({message:"score updated successfully",user});
     }else{
         return res.send({message:"user not found"});
@@ -181,16 +196,17 @@ app.post("/leaderboard",async(req,res,next)=>{
 function changesInDB(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
     changeStream.on('change', async (next) => {
+       // console.log(next);
         if(updateFlag==='insert'){ 
             console.log(addedPlayer);
             io.emit('playerAdded', { addedPlayer });
         }else if(updateFlag==='deleted'){
             console.log(deletedPlayer);
             io.emit('playerDeleted',{deletedPlayer});
+        }else if(updateFlag==='scoreUpdate'){
+            console.log(updatedScore);
+            io.emit('scoreUpdate',{updatedScore});
         }
     });
 }
-
-
-
 
