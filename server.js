@@ -112,7 +112,7 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
     }
 });
 
-
+let addedPowercard;
 app.post("/adminAddPowerCard", async (req, res ,next) => {
     try {
         const { teamName, slot, powercard } = req.body;
@@ -121,8 +121,9 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
             const result = user.powercards.find(pc => pc.name === powercard);
             if (!result) {
                 user.powercards.push({ name: powercard, isUsed: false });
+                updateFlag='powercardAdded';
+                addedPowercard=powercard;
                 await user.save();
-
                 return res.send({ message: "Power card added successfully" ,user:user});
             } else {
                 return res.send({ message: "Power card already present" });
@@ -180,8 +181,8 @@ app.post("/calculator",async(req,res,next)=>{
         const user = await User.findOne({teamName,slot});
         if(user){
         user.score = score;
-        await user.save();
         updateFlag='scoreUpdate';
+        await user.save();
         updatedScore=user.score;
         return res.send({message:"score updated successfully",user});
     }else{
@@ -195,8 +196,7 @@ app.post("/calculator",async(req,res,next)=>{
 
 function changesInDB(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
-    changeStream.on('change', async (next) => {
-       // console.log(next);
+    changeStream.on('change',  () => {
         if(updateFlag==='insert'){ 
             console.log(addedPlayer);
             io.emit('playerAdded', { addedPlayer });
@@ -206,6 +206,9 @@ function changesInDB(timeInMs, pipeline = []) {
         }else if(updateFlag==='scoreUpdate'){
             console.log(updatedScore);
             io.emit('scoreUpdate',{updatedScore});
+        }else if(updateFlag==='powercardAdded'){
+            console.log(addedPowercard);
+            io.emit('powercardAdded',{addedPowercard});
         }
     });
 }
