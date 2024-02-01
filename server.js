@@ -4,9 +4,10 @@ import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
 import errorHandler from "./middlewares/errorMiddleWare.js"
-import http from "http";
-import { Server } from "socket.io";
-
+import http from "http"
+import { Server } from "socket.io"
+import dotenv from "dotenv"
+dotenv.config();
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use(cors());
 app.use(errorHandler);
 
-const CONNECTION_URL = "mongodb+srv://IPL_AUCTION_24:auction%402024@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority";
+const CONNECTION_URL = `mongodb+srv://IPL_AUCTION_24:${process.env.PASSWORD}@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority`;
 
 mongoose.connect(CONNECTION_URL)
 .then(()=>{
