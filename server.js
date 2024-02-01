@@ -3,28 +3,42 @@ import mongoose from "mongoose"
 import cors from "cors"
 import Players from "./models/player.js"
 import User from "./models/user.js"
-import errorHandler from "./middlewares/errorMiddleware.js"
-import { createServer } from "http";
-import { Server } from "socket.io";
-
+import errorHandler from "./middlewares/errorMiddleWare.js"
+import http from "http"
+import { Server } from "socket.io"
+import dotenv from "dotenv"
+dotenv.config();
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
+
+
 const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 app.use(errorHandler);
 
-const CONNECTION_URL = "mongodb+srv://IPL_AUCTION_24:auction%402024@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority";
+const CONNECTION_URL = `mongodb+srv://IPL_AUCTION_24:${process.env.PASSWORD}@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority`;
 
-mongoose.connect(CONNECTION_URL,{useNewUrlParser:true,useUnifiedTopology:true,family: 4})
+mongoose.connect(CONNECTION_URL)
 .then(()=>{
     changesInDB();
     console.log('connected to mongoDB successfully');
 }).catch(err=>{console.log('No connection')});
 
-app.listen(PORT,()=>{
+server.listen(PORT,()=>{
     console.log(`listening on port ${PORT}`);
+});
+
+io.on('connection', (socket) => {
+    socket.on('disconnect', () => {
+      console.log('A user disconnected');
+    });
 });
 
 app.get("/",(req,res)=>{
@@ -53,27 +67,8 @@ app.post("/login", async (req, res, next) => {
        next(err);
     }
  });
- 
- //test completed for login
 
-
-/*
- The adminAddPlayer is used to add a new player
- this will consist of a form with 4 parameters 
- 1. player name (player which is sold)
- 2. team name (which team was this sold eg mi csk rr etc)
- 3. slot no
- 4.cost (cost at which player is sold) in cr if its 50L then admin should type 0.5
- 
-    in this method a new player will be added in the database of the user using _id 
-    here we will also use mongoose change stream to listen to realtime database 
-    changes to no need of refreshing is required
-*/
 let updateFlag;
-/**
- * if updateFlag === insert then player was added
- * if updateFlag === delete then player was deleted
- */ 
 let addedPlayer;
 app.post("/adminAddPlayer", async (req, res ,next) => {
     try {
@@ -118,18 +113,7 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
     }
 });
 
-/*testing of this is completed but additional constraints will be added in thr frontend 
-such as limited no of women players batsman bowler etc
-*/
-
-/*
-    admin Add powercard is used to add powercards this will contain
-    1. teamName
-    2. slot 
-    3. powercard to be added (note this should be a drop box to avoid errors)
-    simple code that adds power card very self explanitory
-    
-*/
+let addedPowercard;
 app.post("/adminAddPowerCard", async (req, res ,next) => {
     try {
         const { teamName, slot, powercard } = req.body;
@@ -138,8 +122,9 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
             const result = user.powercards.find(pc => pc.name === powercard);
             if (!result) {
                 user.powercards.push({ name: powercard, isUsed: false });
+                updateFlag='powercardAdded';
+                addedPowercard=powercard;
                 await user.save();
-
                 return res.send({ message: "Power card added successfully" ,user:user});
             } else {
                 return res.send({ message: "Power card already present" });
@@ -153,15 +138,6 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
     }
 });
 
-
-// testing complete
-
-/**
- * 1.playerName
- * 2.teamName
- * 3.slot
- * 4.bugetToAdd
- */
 let deletedPlayer;
 app.post("/adminDeletePlayer", async (req, res, next) => {
     try {
@@ -198,18 +174,17 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
     }
   });
   
-// testing complete
 
-
-
-
-app.post("/leaderboard",async(req,res,next)=>{
+  let updatedScore;
+app.post("/calculator",async(req,res,next)=>{
     try{
         const {teamName,slot,score} = req.body;
         const user = await User.findOne({teamName,slot});
         if(user){
         user.score = score;
+        updateFlag='scoreUpdate';
         await user.save();
+        updatedScore=user.score;
         return res.send({message:"score updated successfully",user});
     }else{
         return res.send({message:"user not found"});
@@ -222,51 +197,20 @@ app.post("/leaderboard",async(req,res,next)=>{
 
 function changesInDB(timeInMs, pipeline = []) {
     const changeStream = User.watch(pipeline);
-    changeStream.on('change', async (next) => {
-        if(updateFlag==='insert'){
-            //works with console.log not sure about io.emit but shoud not be a major issue i think
+    changeStream.on('change',  () => {
+        if(updateFlag==='insert'){ 
+            console.log(addedPlayer);
             io.emit('playerAdded', { addedPlayer });
         }else if(updateFlag==='deleted'){
-            //works with console.log not sure about io.emit but shoud not be a major issue i think
+            console.log(deletedPlayer);
             io.emit('playerDeleted',{deletedPlayer});
+        }else if(updateFlag==='scoreUpdate'){
+            console.log(updatedScore);
+            io.emit('scoreUpdate',{updatedScore});
+        }else if(updateFlag==='powercardAdded'){
+            console.log(addedPowercard);
+            io.emit('powercardAdded',{addedPowercard});
         }
     });
 }
 
-
-
-
-
-
-/**
- * for dashboard app.get("/user?id=65983c2dd3ee69e3940a22dc")
- * also for spectate
- * const id = req.params 
- * after login store user id in frontend 
- * 1. players ka array(_id)
- * 2. buget
- * 3. powercard ka array
- * 4.team name + slot
- */
-
-/**
- * for leaderboard 
- * 1. score kskksk
- * 2. team name + slot 
- */
-
-
-// ipl -> user (player array ref form player) player
-
-//testing code
-
-// async function test1(){
-//     try{
-//         const player = await User.find();
-//         console.log(player);
-//     }catch(err){
-//         next(err);
-//     }
-// }
-
-// test1();
