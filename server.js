@@ -131,7 +131,7 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
                 updateFlag='powercardAdded';
                 addedPowercard=powercard;
                 await user.save();
-                const endpoint = `powercardAdded${teamName}${slot}`;
+                const endpoint = `playerAdded${teamName}${slot}`;
                 const payload = powercard;
                 emitChanges(endpoint,payload);
                 return res.send({ message: "Power card added successfully" ,user:user});
@@ -168,7 +168,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
             user.buget = user.buget + (bugetToAdd*10000000);
             user.players.splice(playerIndex, 1); 
             await user.save();
-            const endpoint = `playerDeleted${teamName}${slot}`;
+            const endpoint = `playerAdded${teamName}${slot}`;
             const payload = player;
             emitChanges(endpoint,payload);
             return res.send({ message: "Player deleted successfully", user: user });
@@ -197,7 +197,7 @@ app.post("/calculator",async(req,res,next)=>{
         updateFlag='scoreUpdate';
         await user.save();
         updatedScore=user.score;
-        const endpoint = `scoreUpdate${teamName}${slot}`;
+        const endpoint = `playerAdded${teamName}${slot}`;
         const payload = score;
         emitChanges(endpoint,payload);
         return res.send({message:"score updated successfully",user});
