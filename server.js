@@ -27,7 +27,6 @@ const CONNECTION_URL = `mongodb+srv://IPL_AUCTION_24:${process.env.PASSWORD}@clu
 
 mongoose.connect(CONNECTION_URL)
 .then(()=>{
-    changesInDB();
     console.log('connected to mongoDB successfully');
 }).catch(err=>{console.log('No connection')});
 
@@ -46,6 +45,10 @@ app.get("/",(req,res)=>{
 
 });
 
+
+function emitChanges(endpoint,payload){
+    io.emit(endpoint,{payload});
+}
 
 //user verification
 app.post("/login", async (req, res, next) => {
@@ -96,6 +99,9 @@ app.post("/adminAddPlayer", async (req, res ,next) => {
                         updateFlag = 'insert';
                         await user.save();
                         await player.save();
+                        const endpoint = `playerAdded${teamName}${slot}`;
+                        const payload = player;
+                        emitChanges(endpoint,payload);
                         return res.send({message:"New player added successfully",user:user});
                     }
                 } else {
@@ -125,6 +131,9 @@ app.post("/adminAddPowerCard", async (req, res ,next) => {
                 updateFlag='powercardAdded';
                 addedPowercard=powercard;
                 await user.save();
+                const endpoint = `powercardAdded${teamName}${slot}`;
+                const payload = powercard;
+                emitChanges(endpoint,payload);
                 return res.send({ message: "Power card added successfully" ,user:user});
             } else {
                 return res.send({ message: "Power card already present" });
@@ -159,6 +168,9 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
             user.buget = user.buget + (bugetToAdd*10000000);
             user.players.splice(playerIndex, 1); 
             await user.save();
+            const endpoint = `playerDeleted${teamName}${slot}`;
+            const payload = player;
+            emitChanges(endpoint,payload);
             return res.send({ message: "Player deleted successfully", user: user });
           } else {
             return res.send({ message: "Player does not exist with this user" });
@@ -185,6 +197,9 @@ app.post("/calculator",async(req,res,next)=>{
         updateFlag='scoreUpdate';
         await user.save();
         updatedScore=user.score;
+        const endpoint = `scoreUpdate${teamName}${slot}`;
+        const payload = score;
+        emitChanges(endpoint,payload);
         return res.send({message:"score updated successfully",user});
     }else{
         return res.send({message:"user not found"});
@@ -195,22 +210,5 @@ app.post("/calculator",async(req,res,next)=>{
 });
 
 
-function changesInDB(timeInMs, pipeline = []) {
-    const changeStream = User.watch(pipeline);
-    changeStream.on('change',  () => {
-        if(updateFlag==='insert'){ 
-            console.log(addedPlayer);
-            io.emit('playerAdded', { addedPlayer });
-        }else if(updateFlag==='deleted'){
-            console.log(deletedPlayer);
-            io.emit('playerDeleted',{deletedPlayer});
-        }else if(updateFlag==='scoreUpdate'){
-            console.log(updatedScore);
-            io.emit('scoreUpdate',{updatedScore});
-        }else if(updateFlag==='powercardAdded'){
-            console.log(addedPowercard);
-            io.emit('powercardAdded',{addedPowercard});
-        }
-    });
-}
+
 

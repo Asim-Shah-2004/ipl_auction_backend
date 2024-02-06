@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "mongoose": "^6.12.4",
     "socket.io": "^4.7.4"
