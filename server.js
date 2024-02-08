@@ -21,7 +21,6 @@ const io = new Server(server, {
 const PORT = 3000;
 app.use(express.json());
 app.use(cors());
-app.use(errorHandler);
 
 const CONNECTION_URL = `mongodb+srv://IPL_AUCTION_24:${process.env.PASSWORD}@cluster0.ilknu4v.mongodb.net/IPL?retryWrites=true&w=majority`;
 
@@ -30,9 +29,6 @@ mongoose.connect(CONNECTION_URL)
         console.log('connected to mongoDB successfully');
     }).catch(err => { console.log('No connection') });
 
-server.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`);
-});
 
 io.on('connection', (socket) => {
     socket.on('disconnect', () => {
@@ -197,8 +193,11 @@ app.post("/calculator", async (req, res, next) => {
             updateFlag = 'scoreUpdate';
             await user.save();
             updatedScore = user.score;
-            const endpoint = `scoreUpdate${teamName}${slot}`;
-            const payload = score;
+            const endpoint = `scoreUpdate${slot}`;
+            const payload = {
+                teamName:teamName,
+                score:score
+            };
             emitChanges(endpoint, payload);
             return res.send({ message: "score updated successfully", user });
         } else {
@@ -220,6 +219,29 @@ app.get("/getPlayer", async (req, res, next) => {
         }
 
     } catch (err) {
-        console.log(err);
+        next(err);
     }
 });
+
+app.post("/adminAllocteTeam",async(req,res,next)=>{
+    try{
+        const {teamName,username,slot} = req.body;
+        const user = await User.findOne({username,slot});
+        if(user){
+            user.teamName = teamName;
+            await user.save();
+            return res.send({message:"team allocated successfully"});
+        }else{
+            return res.send({message:"user not found"});
+        }
+    }catch(err){
+        next(err);
+    }
+})
+
+server.listen(PORT, () => {
+    console.log(`listening on port ${PORT}`);
+});
+
+app.use(errorHandler);
+
