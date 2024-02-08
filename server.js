@@ -208,10 +208,10 @@ app.post("/calculator", async (req, res, next) => {
     }
 });
 
-app.get("/getPlayer", async (req, res, next) => {
+app.post("/getPlayer", async (req, res, next) => {
     try {
-        const { id } = req.body;
-        const player = await Players.findOne({ id });
+        const { _id } = req.body;
+        const player = await Players.findOne({ _id: _id });
         if (player) {
             return res.send(player);
         } else {
