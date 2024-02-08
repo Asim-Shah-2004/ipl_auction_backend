@@ -223,28 +223,30 @@ app.get("/getPlayer", async (req, res, next) => {
     }
 });
 
-app.post("/adminAllocateTeam",async(req,res,next)=>{
-    try{
-        const {teamName,username,slot,buget} = req.body;
+app.post("/adminAllocateTeam", async (req, res, next) => {
+    try {
+        const { teamName, username, slot, buget } = req.body;
         const user = await User.findOne({ username, slot });
-        if(user){
-            if(user.buget-buget<0){
-                res.send({message:"not enough buget"});
-            }else{
+        if (user) {
+            if (user.buget - buget < 0) {
+                res.send({ message: "not enough buget" });
+            } else {
                 user.teamName = teamName;
                 await user.save();
+                console.log();
                 const endpoint = `teamAllocate${username}${slot}`;
                 const payload = teamName;
-                emitChanges(endpoint,{payload});
-                return res.send({message:"team allocated successfully"},{user:user});
+                emitChanges(endpoint, { payload });
+                return res.send({ message: "team allocated successfully", user: user });
             }
-        }else{
-            return res.send({message:"user not found"});
+        } else {
+            return res.status(200).send({ message: "user not found" });
         }
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 })
+
 
 app.get("/spectate:teamName");
 
