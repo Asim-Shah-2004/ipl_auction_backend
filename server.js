@@ -208,10 +208,10 @@ app.post("/calculator", async (req, res, next) => {
     }
 });
 
-app.post("/getPlayer", async (req, res, next) => {
+app.get("/getPlayer", async (req, res, next) => {
     try {
-        const { _id } = req.body;
-        const player = await Players.findOne({ _id: _id });
+        const { id } = req.body;
+        const player = await Players.findOne({ id });
         if (player) {
             return res.send(player);
         } else {
@@ -223,14 +223,21 @@ app.post("/getPlayer", async (req, res, next) => {
     }
 });
 
-app.post("/adminAllocteTeam",async(req,res,next)=>{
+app.post("/adminAllocateTeam",async(req,res,next)=>{
     try{
-        const {teamName,username,slot} = req.body;
-        const user = await User.findOne({username,slot});
+        const {teamName,username,slot,buget} = req.body;
+        const user = await User.findOne({ username, slot });
         if(user){
-            user.teamName = teamName;
-            await user.save();
-            return res.send({message:"team allocated successfully"});
+            if(user.buget-buget<0){
+                res.send({message:"not enough buget"});
+            }else{
+                user.teamName = teamName;
+                await user.save();
+                const endpoint = `teamAllocate${username}${slot}`;
+                const payload = teamName;
+                emitChanges(endpoint,{payload});
+                return res.send({message:"team allocated successfully"},{user:user});
+            }
         }else{
             return res.send({message:"user not found"});
         }
@@ -238,6 +245,8 @@ app.post("/adminAllocteTeam",async(req,res,next)=>{
         next(err);
     }
 })
+
+app.get("/spectate:teamName");
 
 server.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);
