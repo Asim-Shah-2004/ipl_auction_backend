@@ -223,7 +223,7 @@ app.get("/getPlayer", async (req, res, next) => {
     }
 });
 
-app.post("/adminAllocateTeam", async (req, res, next) => {
+app.patch("/adminAllocateTeam", async (req, res, next) => {
     try {
         const { teamName, username, slot, buget } = req.body;
         const user = await User.findOne({ username, slot });
@@ -248,7 +248,30 @@ app.post("/adminAllocateTeam", async (req, res, next) => {
 })
 
 
-app.get("/spectate:teamName");
+app.get("/spectate/:teamName/:slot", async (req, res, next) => {
+    const teamName = req.params.teamName;
+    const slot = req.params.slot;
+    try{
+        const user = await User.findOne({teamName,slot});
+        if(user){
+            const newUser = {
+                slot:user.slot,
+                teamName:user.teamName,
+                buget:user.buget,
+                score:user.score,
+                players:user.players,
+                powercards:user.powercards
+            }
+            res.send({newUser:newUser})
+        }else{
+            res.send({message:"user not found"});
+        }
+    }catch(err){
+        next(err);
+    }    
+    
+});
+
 
 server.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);
