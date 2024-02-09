@@ -172,30 +172,29 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
     }
 });
 
-app.patch("/adminUsePowerCard",async (req,res,next)=>{
-    const{teamName,slot,powercard} = req.body;
-    try{
-        const user = await User.findOne({teamName,slot});
-        if(user){
+app.patch("/adminUsePowerCard", async (req, res, next) => {
+    const { teamName, slot, powercard } = req.body;
+    try {
+        const user = await User.findOne({ teamName, slot });
+        if (user) {
             const result = user.powercards.find(pc => pc.name === powercard);
-            if(result){
-                console.log(result);
+            if (result) {
                 result.isUsed = true;
-                await result.save();
+                await user.save();
                 const endpoint = `usePowerCard${teamName}${slot}`;
                 const payload = user.powercards;
-                emitChanges(endpoint,payload);
-                res.send({message:"powercard used  successfully"},{user:user});
-            }else{
-                res.send({message:"user does not have this powercard"});           
+                emitChanges(endpoint, payload);
+                res.send({ message: "powercard used  successfully" }, { user: user });
+            } else {
+                res.send({ message: "user does not have this powercard" });
             }
-        }else{
-            res.send({message:"user not found"});
+        } else {
+            res.send({ message: "user not found" });
         }
-    }catch(err){
+    } catch (err) {
         next(err);
     }
-    
+
 })
 
 app.post("/calculator", async (req, res, next) => {
@@ -207,8 +206,8 @@ app.post("/calculator", async (req, res, next) => {
             await user.save();
             const endpoint = `scoreUpdate${slot}`;
             const payload = {
-                teamName:teamName,
-                score:score
+                teamName: teamName,
+                score: score
             };
             emitChanges(endpoint, payload);
             return res.send({ message: "score updated successfully", user });
@@ -248,10 +247,10 @@ app.patch("/adminAllocateTeam", async (req, res, next) => {
                 console.log();
                 const endpoint = `teamAllocate${username}${slot}`;
                 const payload = {
-                    teamName:teamName,
-                    buget:buget
+                    teamName: teamName,
+                    buget: buget
                 };
-                emitChanges(endpoint, { payload });
+                emitChanges(endpoint, payload);
                 return res.send({ message: "team allocated successfully", user: user });
             }
         } else {
@@ -266,25 +265,25 @@ app.patch("/adminAllocateTeam", async (req, res, next) => {
 app.get("/spectate/:teamName/:slot", async (req, res, next) => {
     const teamName = req.params.teamName;
     const slot = req.params.slot;
-    try{
-        const user = await User.findOne({teamName,slot});
-        if(user){
+    try {
+        const user = await User.findOne({ teamName, slot });
+        if (user) {
             const newUser = {
-                slot:user.slot,
-                teamName:user.teamName,
-                buget:user.buget,
-                score:user.score,
-                players:user.players,
-                powercards:user.powercards
+                slot: user.slot,
+                teamName: user.teamName,
+                buget: user.buget,
+                score: user.score,
+                players: user.players,
+                powercards: user.powercards
             }
-            res.send({newUser:newUser})
-        }else{
-            res.send({message:"user not found"});
+            res.send({ newUser: newUser })
+        } else {
+            res.send({ message: "user not found" });
         }
-    }catch(err){
+    } catch (err) {
         next(err);
-    }    
-    
+    }
+
 });
 
 
