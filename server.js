@@ -128,7 +128,7 @@ app.post("/adminAddPowerCard", async (req, res, next) => {
                 addedPowercard = powercard;
                 await user.save();
                 const endpoint = `powercardAdded${teamName}${slot}`;
-                const payload = powercard;
+                const payload = user.powercard;
                 emitChanges(endpoint, payload);
                 return res.send({ message: "Power card added successfully", user: user });
             } else {
