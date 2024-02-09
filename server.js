@@ -182,6 +182,28 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
     }
 });
 
+app.patch("/adminUsePowerCard",async (req,res,next)=>{
+    const{teamName,slot,powercard} = req.body;
+    try{
+        const user = await User.findOne({teamName,slot});
+        if(user){
+            const result = user.powercards.find(pc => pc.name === powercard);
+            if(result){
+                console.log(result);
+                result.isUsed = true;
+                await result.save();
+                res.send({message:"powercard used  successfully"},{user:user});
+            }else{
+                res.send({message:"user does not have this powercard"});           
+            }
+        }else{
+            res.send({message:"user not found"});
+        }
+    }catch(err){
+        next(err);
+    }
+    
+})
 
 let updatedScore;
 app.post("/calculator", async (req, res, next) => {
@@ -235,7 +257,10 @@ app.patch("/adminAllocateTeam", async (req, res, next) => {
                 await user.save();
                 console.log();
                 const endpoint = `teamAllocate${username}${slot}`;
-                const payload = teamName;
+                const payload = {
+                    teamName:teamName,
+                    buget:buget
+                };
                 emitChanges(endpoint, { payload });
                 return res.send({ message: "team allocated successfully", user: user });
             }
