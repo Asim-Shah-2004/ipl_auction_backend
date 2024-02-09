@@ -188,13 +188,16 @@ app.patch("/adminUsePowerCard",async (req,res,next)=>{
         const user = await User.findOne({teamName,slot});
         if(user){
             const result = user.powercards.find(pc => pc.name === powercard);
-            if(result){
-                console.log(result);
-                result.isUsed = true;
-                await result.save();
-                res.send({message:"powercard used  successfully"},{user:user});
+            if(result.isUsed===false){
+                if(result){
+                    result.isUsed = true;
+                    await user.save();
+                    res.send({user:user});
+                }else{
+                    res.send({message:"user does not have this powercard"});           
+                }
             }else{
-                res.send({message:"user does not have this powercard"});           
+                res.send({message:"power card already used"});
             }
         }else{
             res.send({message:"user not found"});
@@ -254,15 +257,15 @@ app.patch("/adminAllocateTeam", async (req, res, next) => {
                 res.send({ message: "not enough buget" });
             } else {
                 user.teamName = teamName;
+                user.buget = user.buget-buget;
                 await user.save();
-                console.log();
                 const endpoint = `teamAllocate${username}${slot}`;
                 const payload = {
                     teamName:teamName,
-                    buget:buget
+                    buget:user.buget
                 };
-                emitChanges(endpoint, { payload });
-                return res.send({ message: "team allocated successfully", user: user });
+                emitChanges(endpoint,  payload );
+                return res.send({user: user });
             }
         } else {
             return res.status(200).send({ message: "user not found" });
