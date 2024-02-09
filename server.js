@@ -192,6 +192,9 @@ app.patch("/adminUsePowerCard",async (req,res,next)=>{
                 console.log(result);
                 result.isUsed = true;
                 await result.save();
+                const endpoint = `usePowerCard${teamName}${slot}`;
+                const payload = user.powercards;
+                emitChanges(endpoint,payload);
                 res.send({message:"powercard used  successfully"},{user:user});
             }else{
                 res.send({message:"user does not have this powercard"});           
