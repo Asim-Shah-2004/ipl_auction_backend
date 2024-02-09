@@ -67,8 +67,6 @@ app.post("/login", async (req, res, next) => {
     }
 });
 
-let updateFlag;
-let addedPlayer;
 app.post("/adminAddPlayer", async (req, res, next) => {
     try {
         const { playerName, teamName, slot, buget } = req.body;
@@ -91,8 +89,6 @@ app.post("/adminAddPlayer", async (req, res, next) => {
                         if (!user.players.includes(player._id)) {
                             user.players.push(player._id);
                         }
-                        addedPlayer = player;
-                        updateFlag = 'insert';
                         await user.save();
                         await player.save();
                         const endpoint = `playerAdded${teamName}${slot}`;
@@ -115,7 +111,6 @@ app.post("/adminAddPlayer", async (req, res, next) => {
     }
 });
 
-let addedPowercard;
 app.post("/adminAddPowerCard", async (req, res, next) => {
     try {
         const { teamName, slot, powercard } = req.body;
@@ -124,8 +119,6 @@ app.post("/adminAddPowerCard", async (req, res, next) => {
             const result = user.powercards.find(pc => pc.name === powercard);
             if (!result) {
                 user.powercards.push({ name: powercard, isUsed: false });
-                updateFlag = 'powercardAdded';
-                addedPowercard = powercard;
                 await user.save();
                 const endpoint = `powercardAdded${teamName}${slot}`;
                 const payload = user.powercards;
@@ -143,7 +136,6 @@ app.post("/adminAddPowerCard", async (req, res, next) => {
     }
 });
 
-let deletedPlayer;
 app.post("/adminDeletePlayer", async (req, res, next) => {
     try {
         const { playerName, teamName, slot, bugetToAdd } = req.body;
@@ -159,8 +151,6 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
                     const index = player.isSold.indexOf(slot);
                     player.isSold.splice(index, 1);
                     await player.save();
-                    deletedPlayer = player;
-                    updateFlag = 'deleted';
                     user.buget = user.buget + (bugetToAdd * 10000000);
                     user.players.splice(playerIndex, 1);
                     await user.save();
@@ -208,16 +198,13 @@ app.patch("/adminUsePowerCard",async (req,res,next)=>{
     
 })
 
-let updatedScore;
 app.post("/calculator", async (req, res, next) => {
     try {
         const { teamName, slot, score } = req.body;
         const user = await User.findOne({ teamName, slot });
         if (user) {
             user.score = score;
-            updateFlag = 'scoreUpdate';
             await user.save();
-            updatedScore = user.score;
             const endpoint = `scoreUpdate${slot}`;
             const payload = {
                 teamName:teamName,
