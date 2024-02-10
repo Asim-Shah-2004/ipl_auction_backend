@@ -98,7 +98,7 @@ app.post("/adminAddPlayer", async (req, res, next) => {
         await Promise.all([user.save(), player.save()]);
 
         const endpoint = `playerAdded${teamName}${slot}`;
-        const payload = player;
+        const payload = { playerID: player._id, budget: user.budget };
         emitChanges(endpoint, payload);
 
         res.send({ message: "New player added successfully", user });
@@ -139,7 +139,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
         await user.save();
 
         const endpoint = `playerDeleted${teamName}${slot}`;
-        const payload = player;
+        const payload = { playerID: player._id, budget: user.budget };
         emitChanges(endpoint, payload);
 
         res.send({ message: "Player deleted successfully", user });
