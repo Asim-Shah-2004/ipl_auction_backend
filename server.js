@@ -69,7 +69,7 @@ app.post("/login", async (req, res, next) => {
 // Route to add a player
 app.post("/adminAddPlayer", async (req, res, next) => {
     try {
-        const { playerName, teamName, slot, buget } = req.body;
+        const { playerName, teamName, slot, price } = req.body;
 
         const user = await User.findOne({ teamName, slot });
 
@@ -86,14 +86,14 @@ app.post("/adminAddPlayer", async (req, res, next) => {
         if (index !== -1)
             return res.send({ message: `Player is already sold in slot number ${slot}` });
 
-        const newbuget = user.buget - (buget * ONE_CR);
+        const newbudget = user.budget - (price * ONE_CR);
 
-        if (newbuget < 0)
-            return res.send({ message: "Not enough buget" });
+        if (newbudget < 0)
+            return res.send({ message: "Not enough budget" });
 
         // Sell the player
         player.isSold.push(slot);
-        user.buget = newbuget;
+        user.budget = newbudget;
         user.players.push(player._id);
         await Promise.all([user.save(), player.save()]);
 
@@ -111,7 +111,7 @@ app.post("/adminAddPlayer", async (req, res, next) => {
 // Route to delete a Player
 app.post("/adminDeletePlayer", async (req, res, next) => {
     try {
-        const { playerName, teamName, slot, bugetToAdd } = req.body;
+        const { playerName, teamName, slot, price } = req.body;
 
         const user = await User.findOne({ teamName, slot });
 
@@ -134,7 +134,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
         await player.save();
 
         // Add the price back in which the player was sold 
-        user.buget = user.buget + (bugetToAdd * ONE_CR);
+        user.budget = user.budget + (price * ONE_CR);
         user.players.splice(playerIndex, 1);
         await user.save();
 
@@ -254,27 +254,27 @@ app.post("/calculator", async (req, res, next) => {
 // Route to Allocate team
 app.patch("/adminAllocateTeam", async (req, res, next) => {
     try {
-        const { teamName, username, slot, buget } = req.body;
+        const { teamName, username, slot, price } = req.body;
 
         const user = await User.findOne({ username, slot });
 
         if (!user)
             return res.send({ message: "User not found" });
 
-        const newbuget = user.buget - (buget * ONE_CR);
+        const newbudget = user.budget - (price * ONE_CR);
 
-        if (newbuget < 0)
-            return res.send({ message: "Not enough buget" });
+        if (newbudget < 0)
+            return res.send({ message: "Not enough budget" });
 
         // Allocate Team
         user.teamName = teamName;
-        user.buget = newbuget
+        user.budget = newbudget
         await user.save();
 
         const endpoint = `teamAllocate${username}${slot}`;
         const payload = {
             teamName: teamName,
-            buget: newbuget
+            budget: newbudget
         };
         emitChanges(endpoint, payload);
 
@@ -298,7 +298,7 @@ app.get("/spectate/:teamName/:slot", async (req, res, next) => {
         const newUser = {
             slot: user.slot,
             teamName: user.teamName,
-            buget: user.buget,
+            budget: user.budget,
             score: user.score,
             players: user.players,
             powercards: user.powercards

@@ -17,10 +17,9 @@ const userSchema = new mongoose.Schema({
         type:String, // mi cks rr
     }
     ,
-    //note this spelling is wrong
-    buget:{ 
+    budget:{ 
         type:Number,
-        required:[true,"invalid buget"],
+        required:[true,"invalid budget"],
         max:950000000,
         min:0
     },
