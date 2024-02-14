@@ -81,9 +81,9 @@ app.post("/adminAddPlayer", async (req, res, next) => {
         if (!player)
             return res.send({ message: "Player not found!" });
 
-        const index = player.isSold.indexOf(slot);
-
-        if (index !== -1)
+        // Check if the player is already sold in the given slot
+        const isAlreadySold = player.isSold.some(item => item.slot === slot);
+        if (isAlreadySold)
             return res.send({ message: `Player is already sold in slot number ${slot}` });
 
         const newbudget = user.budget - (price * ONE_CR);
@@ -92,7 +92,7 @@ app.post("/adminAddPlayer", async (req, res, next) => {
             return res.send({ message: "Not enough budget" });
 
         // Sell the player
-        player.isSold.push(slot);
+        player.isSold.push({ slot:slot, budget:price }); // Corrected line to push slot and price
         user.budget = newbudget;
         user.players.push(player._id);
         await Promise.all([user.save(), player.save()]);
@@ -101,17 +101,20 @@ app.post("/adminAddPlayer", async (req, res, next) => {
         const payload = { playerID: player._id, budget: user.budget };
         emitChanges(endpoint, payload);
 
-        res.send({ message: "New player added successfully", user });
+        res.send({ message: "New player added successfully", player });
     } catch (err) {
         console.error(err);
         next(err);
     }
 });
 
+
 // Route to delete a Player
+
+
 app.post("/adminDeletePlayer", async (req, res, next) => {
     try {
-        const { playerName, teamName, slot, price } = req.body;
+        const { playerName, teamName, slot } = req.body;
 
         const user = await User.findOne({ teamName, slot });
 
@@ -121,7 +124,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
         const player = await Players.findOne({ playerName });
 
         if (!player)
-            res.send({ message: "Player not found" });
+            return res.send({ message: "Player not found" });
 
         const playerIndex = user.players.findIndex(playerId => playerId.equals(player._id));
 
@@ -129,8 +132,12 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
             return res.send({ message: "Player does not exist with this user" });
 
         // Remove player
-        const index = player.isSold.indexOf(slot);
-        player.isSold.splice(index, 1);
+        const soldIndex = player.isSold.findIndex(item => item.slot === slot);
+        if (soldIndex === -1)
+            return res.send({ message: "Player was not sold with this slot" });
+
+        const price = player.isSold[soldIndex].budget;
+        player.isSold.splice(soldIndex, 1);
         await player.save();
 
         // Add the price back in which the player was sold 
@@ -142,7 +149,7 @@ app.post("/adminDeletePlayer", async (req, res, next) => {
         const payload = { playerID: player._id, budget: user.budget };
         emitChanges(endpoint, payload);
 
-        res.send({ message: "Player deleted successfully", user });
+        res.send({ message: "Player deleted successfully", player ,user});
     } catch (err) {
         next(err);
     }
